@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, BookOpen, User } from "lucide-react";
+import { Menu, X, Sun, Moon, BookOpen, User, Clock, DnaIcon, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import LoginModal from "./LoginModal";
@@ -90,6 +90,8 @@ const Navbar = () => {
     { name: "Stories", path: "/stories" },
     { name: "Facts", path: "/facts" },
     { name: "Quizzes", path: "/quizzes" },
+    { name: "Meditation", path: "/meditation", icon: <PlayCircle className="h-4 w-4 mr-1" /> },
+    { name: "Timeline", path: "/timeline", icon: <Clock className="h-4 w-4 mr-1" /> },
   ];
 
   const activeLink = (path: string) => {
@@ -122,8 +124,9 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                className={`font-medium ${activeLink(link.path)}`}
+                className={`font-medium flex items-center ${activeLink(link.path)}`}
               >
+                {link.icon && link.icon}
                 {link.name}
               </Link>
             ))}
@@ -244,12 +247,13 @@ const Navbar = () => {
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`py-2 px-4 font-medium rounded-md ${
+                  className={`py-2 px-4 font-medium rounded-md flex items-center ${
                     location.pathname === link.path
                       ? "bg-gold-100 dark:bg-gold-900/20 text-gold-500"
                       : "hover:bg-gold-50 dark:hover:bg-gold-900/10 transition-colors duration-200"
                   }`}
                 >
+                  {link.icon && link.icon}
                   {link.name}
                 </Link>
               ))}

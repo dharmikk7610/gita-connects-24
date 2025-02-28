@@ -1,5 +1,5 @@
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, PlayCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -106,6 +106,107 @@ const Index = () => {
             {featuredStories.map((story) => (
               <StoryCard key={story.id} {...story} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* New Features Showcase */}
+      <section className="py-16 bg-gradient-to-r from-deepBlue-500 to-deepBlue-600 text-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">New Spiritual Experiences</h2>
+            <p className="text-gray-300 max-w-3xl mx-auto">
+              Explore our latest features designed to deepen your spiritual journey and connection
+              with ancient Hindu wisdom.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Cosmic Meditation Portal */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-white/10 transition-colors duration-300 group">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/20 flex items-center justify-center mr-4">
+                    <PlayCircle className="h-6 w-6 text-gold-300" />
+                  </div>
+                  <h3 className="text-xl font-bold">Cosmic Meditation Portal</h3>
+                </div>
+                <p className="text-gray-300 mb-6">
+                  Embark on immersive meditation journeys through interactive visualizations.
+                  Balance your chakras, explore astral planes, and reflect on Gita teachings.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Immersive meditation experiences with guided visualizations</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Adaptive meditation content based on your emotional state</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Chakra healing, astral travel, and Gita reflection journeys</span>
+                  </li>
+                </ul>
+                <Link
+                  to="/meditation"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-deepBlue-900 font-medium rounded-md shadow-gold transition-all duration-300 hover:shadow-gold-lg"
+                >
+                  Begin Your Journey
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+            
+            {/* Sacred Timeline */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden hover:bg-white/10 transition-colors duration-300 group">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-gold-500/20 flex items-center justify-center mr-4">
+                    <Clock className="h-6 w-6 text-gold-300" />
+                  </div>
+                  <h3 className="text-xl font-bold">Sacred Timeline</h3>
+                </div>
+                <p className="text-gray-300 mb-6">
+                  Explore the rich tapestry of Hindu mythology, history, and scripture across
+                  the ages. Discover the events that shaped spiritual consciousness.
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Interactive timeline of Hindu epics and spiritual history</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Detailed information on key events, figures, and scriptures</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="h-5 w-5 rounded-full bg-gold-500/20 flex items-center justify-center mr-2 flex-shrink-0 mt-0.5">
+                      <span className="h-2 w-2 rounded-full bg-gold-300"></span>
+                    </span>
+                    <span>Historical context for ancient texts and teachings</span>
+                  </li>
+                </ul>
+                <Link
+                  to="/timeline"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-deepBlue-900 font-medium rounded-md shadow-gold transition-all duration-300 hover:shadow-gold-lg"
+                >
+                  Explore Timeline
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

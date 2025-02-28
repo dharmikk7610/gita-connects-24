@@ -12,6 +12,8 @@ import Chat from "./pages/Chat";
 import Stories from "./pages/Stories";
 import Facts from "./pages/Facts";
 import Quizzes from "./pages/Quizzes";
+import MeditationPortal from "./pages/MeditationPortal";
+import SacredTimeline from "./pages/SacredTimeline";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +49,12 @@ const App = () => {
                   <Quizzes />
                 </ProtectedRoute>
               } />
+              <Route path="/meditation" element={
+                <ProtectedRoute>
+                  <MeditationPortal />
+                </ProtectedRoute>
+              } />
+              <Route path="/timeline" element={<SacredTimeline />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
