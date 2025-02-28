@@ -224,7 +224,7 @@ const MeditationPortal = () => {
       <main className="pt-24 pb-16 bg-gradient-to-b from-deepBlue-600/20 to-deepBlue-600/5 dark:from-deepBlue-800 dark:to-deepBlue-900 min-h-screen">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 animate-fade-in">
-            <h1 className="text-3xl md:text-4xl font-bold text-deepBlue-600 dark:text-white mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-deepBlue-600 dark:text-white mb-4 section-heading">
               Cosmic Meditation Portal
             </h1>
             <p className="max-w-2xl mx-auto text-gray-600 dark:text-gray-300">
@@ -318,7 +318,7 @@ const MeditationPortal = () => {
                               </a>
                             </li>
                             <li>
-                              <div className="p-4 border rounded-md bg-white/90 dark:bg-deepBlue-700/80">
+                              <div className="p-4 border rounded-md bg-white/90 dark:bg-deepBlue-700/80 card">
                                 <h3 className="text-sm font-medium mb-1">Your Meditation Stats</h3>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                   <div>
@@ -341,13 +341,13 @@ const MeditationPortal = () => {
                               </div>
                             </li>
                             <li>
-                              <div className="p-4 border rounded-md bg-white/90 dark:bg-deepBlue-700/80">
+                              <div className="p-4 border rounded-md bg-white/90 dark:bg-deepBlue-700/80 card">
                                 <h3 className="text-sm font-medium mb-1">Last Session</h3>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {userStats.favoriteJourney} • {userStats.lastCompletedSession}
                                 </p>
                                 <div className="mt-2">
-                                  <Button size="sm" variant="outline" className="text-xs">
+                                  <Button size="sm" variant="outline" className="text-xs btn btn-outline">
                                     View Full History
                                   </Button>
                                 </div>
@@ -375,13 +375,13 @@ const MeditationPortal = () => {
                         placeholder="Search meditation journeys..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-white dark:bg-deepBlue-700/50 w-full"
+                        className="pl-10 bg-white dark:bg-deepBlue-700/50 w-full input"
                       />
                     </div>
                     
                     <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                       <DrawerTrigger asChild>
-                        <Button variant="outline" className="flex-shrink-0">
+                        <Button variant="outline" className="flex-shrink-0 btn btn-outline">
                           <SlidersHorizontal className="h-4 w-4 mr-2" />
                           Filters
                         </Button>
@@ -416,7 +416,7 @@ const MeditationPortal = () => {
                                     key={category}
                                     variant={activeCategory === category ? "default" : "outline"}
                                     onClick={() => setActiveCategory(category)}
-                                    className="w-full justify-start"
+                                    className={`w-full justify-start ${activeCategory === category ? 'btn btn-primary' : 'btn btn-outline'}`}
                                   >
                                     {category.charAt(0).toUpperCase() + category.slice(1)}
                                   </Button>
@@ -425,9 +425,9 @@ const MeditationPortal = () => {
                             </div>
                           </div>
                           <DrawerFooter>
-                            <Button onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+                            <Button onClick={() => setIsFilterOpen(false)} className="btn btn-primary">Apply Filters</Button>
                             <DrawerClose asChild>
-                              <Button variant="outline" onClick={handleResetFilters}>Reset Filters</Button>
+                              <Button variant="outline" onClick={handleResetFilters} className="btn btn-outline">Reset Filters</Button>
                             </DrawerClose>
                           </DrawerFooter>
                         </div>
@@ -446,9 +446,9 @@ const MeditationPortal = () => {
                 
                 {/* Weekly Schedule */}
                 <div id="weekly-schedule" className="max-w-5xl mx-auto mb-10 animate-fade-in">
-                  <Card className="bg-white/90 dark:bg-deepBlue-700/50 border-gold-200 dark:border-gold-800/30">
+                  <Card className="bg-white/90 dark:bg-deepBlue-700/50 border-gold-200 dark:border-gold-800/30 card">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-xl flex items-center">
+                      <CardTitle className="text-xl flex items-center section-heading">
                         <Calendar className="h-5 w-5 mr-2 text-gold-500" />
                         Weekly Practice Schedule
                       </CardTitle>
@@ -472,7 +472,7 @@ const MeditationPortal = () => {
                             {weeklySchedule.map((session, index) => (
                               <tr key={index} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
                                 <td className="py-3 text-sm">{session.day}</td>
-                                <td className="py-3 text-sm font-medium">{session.practice}</td>
+                                <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
                                 <td className="py-3 text-sm">{session.time}</td>
                                 <td className="py-3 text-sm">{session.duration} min</td>
                                 <td className="py-3 text-right">
@@ -480,7 +480,7 @@ const MeditationPortal = () => {
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => handleScheduleSession(session.day, session.practice)}
-                                    className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10"
+                                    className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 btn btn-primary"
                                   >
                                     <PlayCircle className="h-4 w-4 mr-1" />
                                     Start
@@ -493,7 +493,7 @@ const MeditationPortal = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full btn btn-outline">
                         Customize Schedule
                       </Button>
                     </CardFooter>
@@ -504,7 +504,7 @@ const MeditationPortal = () => {
                 {featuredJourneys.length > 0 && (
                   <div id="featured" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
+                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
                         <Sparkle className="h-5 w-5 mr-2 text-gold-500" />
                         Featured Journeys
                       </h2>
@@ -517,7 +517,7 @@ const MeditationPortal = () => {
                         <div 
                           key={journey.id}
                           onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
                         >
                           <div className="relative h-48 overflow-hidden">
                             <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
@@ -540,7 +540,7 @@ const MeditationPortal = () => {
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                               {journey.description}
                             </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300">
+                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
                               Begin Journey
                             </button>
                           </div>
@@ -554,7 +554,7 @@ const MeditationPortal = () => {
                 {beginnerJourneys.length > 0 && (
                   <div id="beginner" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
+                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
                         <PlayCircle className="h-5 w-5 mr-2 text-gold-500" />
                         Beginner Practices
                       </h2>
@@ -564,7 +564,7 @@ const MeditationPortal = () => {
                         <div 
                           key={journey.id}
                           onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
                         >
                           <div className="relative h-48 overflow-hidden">
                             <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
@@ -587,7 +587,7 @@ const MeditationPortal = () => {
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                               {journey.description}
                             </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300">
+                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
                               Begin Journey
                             </button>
                           </div>
@@ -601,7 +601,7 @@ const MeditationPortal = () => {
                 {energyJourneys.length > 0 && (
                   <div id="energy" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
+                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
                         <Sparkle className="h-5 w-5 mr-2 text-gold-500" />
                         Energy Work
                       </h2>
@@ -611,7 +611,7 @@ const MeditationPortal = () => {
                         <div 
                           key={journey.id}
                           onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
                         >
                           <div className="relative h-48 overflow-hidden">
                             <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
@@ -634,7 +634,7 @@ const MeditationPortal = () => {
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                               {journey.description}
                             </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300">
+                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
                               Begin Journey
                             </button>
                           </div>
@@ -648,7 +648,7 @@ const MeditationPortal = () => {
                 {devotionalJourneys.length > 0 && (
                   <div id="devotional" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
+                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
                         <Heart className="h-5 w-5 mr-2 text-gold-500" />
                         Devotional Practices
                       </h2>
@@ -658,7 +658,7 @@ const MeditationPortal = () => {
                         <div 
                           key={journey.id}
                           onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group"
+                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
                         >
                           <div className="relative h-48 overflow-hidden">
                             <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
@@ -681,7 +681,7 @@ const MeditationPortal = () => {
                             <p className="text-gray-600 dark:text-gray-300 text-sm">
                               {journey.description}
                             </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300">
+                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
                               Begin Journey
                             </button>
                           </div>
@@ -693,7 +693,7 @@ const MeditationPortal = () => {
                 
                 {/* Show a message if no journeys match the filters */}
                 {filteredJourneys.length === 0 && (
-                  <div className="text-center py-12 bg-white/80 dark:bg-deepBlue-700/30 rounded-lg">
+                  <div className="text-center py-12 bg-white/80 dark:bg-deepBlue-700/30 rounded-lg card">
                     <Sparkle className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                     <h3 className="text-lg font-medium text-deepBlue-600 dark:text-gold-300 mb-2">No meditation journeys found</h3>
                     <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
@@ -702,7 +702,7 @@ const MeditationPortal = () => {
                     <Button 
                       variant="outline" 
                       onClick={handleResetFilters}
-                      className="mt-4"
+                      className="mt-4 btn btn-outline"
                     >
                       Reset Filters
                     </Button>

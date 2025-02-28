@@ -46,6 +46,15 @@
     --sidebar-accent-foreground: 220 72% 12%;
     --sidebar-border: 215 30% 91%;
     --sidebar-ring: 45 70% 52%;
+    
+    /* Custom theme colors */
+    --background-light: 210 30% 98%;
+    --text-light: 220 30% 15%;
+    --background-dark: 220 40% 10%;
+    --text-dark: 0 0% 98%;
+    --primary-dark: 45 70% 42%;
+    --secondary-dark: 220 40% 18%;
+    --accent-dark: 28 100% 50%;
   }
 
   .dark {
@@ -95,6 +104,7 @@
 
   body {
     @apply bg-background text-foreground font-sanskrit;
+    @apply bg-background-light text-text-light dark:bg-background-dark dark:text-text-dark transition-colors duration-300;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -108,13 +118,51 @@
   }
 }
 
-@layer utilities {
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark;
+  }
+  
+  .btn-accent {
+    @apply bg-accent text-secondary hover:bg-accent-dark;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-secondary-dark rounded-lg shadow-md overflow-hidden transition-all duration-300;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 
+           bg-white dark:bg-secondary-dark text-text-light dark:text-text-dark
+           focus:outline-none focus:ring-2 focus:ring-primary;
+  }
+  
+  .section-heading {
+    @apply text-2xl md:text-3xl font-devanagari text-secondary dark:text-primary mb-6;
+  }
+  
+  .sanskrit-text {
+    @apply font-devanagari;
+  }
+
   .divine-glow {
     @apply animate-glow;
   }
 
-  .divine-border {
-    @apply border border-gold-500/50 rounded-md;
+  .divine-float {
+    @apply animate-float;
   }
 
   .divine-card {
@@ -144,6 +192,12 @@
   
   .glass-effect {
     @apply bg-white/80 dark:bg-deepBlue-600/80 backdrop-blur-md;
+  }
+}
+
+@layer utilities {
+  .divine-border {
+    @apply border border-gold-500/50 rounded-md;
   }
 }
 
