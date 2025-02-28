@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { initializeMeditationDatabase } from "@/services/meditationService";
 import Index from "./pages/Index";
 import Chat from "./pages/Chat";
 import Stories from "./pages/Stories";
@@ -26,6 +27,17 @@ const App = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Initialize the database with sample data (in a real app, this would be done in a separate admin script)
+    const initializeData = async () => {
+      try {
+        await initializeMeditationDatabase();
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      }
+    };
+    
+    initializeData();
   }, []);
 
   return (

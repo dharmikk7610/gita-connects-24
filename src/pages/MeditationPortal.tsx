@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ArrowRight, 
   ChevronRight, 
@@ -72,15 +72,18 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
-
-// Type definition for a schedule item
-interface ScheduleItem {
-  id: string;
-  day: string;
-  practice: string;
-  time: string;
-  duration: number;
-}
+import { 
+  MeditationJourney as MeditationJourneyType,
+  ScheduleItem, 
+  getAllJourneys, 
+  getJourneysByCategory, 
+  getFeaturedJourneys,
+  getUserSchedule,
+  addScheduleItem,
+  updateScheduleItem,
+  deleteScheduleItem
+} from "@/services/meditationService";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const MeditationPortal = () => {
   const { isAuthenticated, user } = useAuth();
@@ -98,109 +101,95 @@ const MeditationPortal = () => {
     duration: 20
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
-  // Sample meditation journeys
-  const journeys = [
-    {
-      id: "chakra-healing",
-      title: "Chakra Healing",
-      description: "Align and balance your seven chakras through guided visualization and energy work.",
-      duration: 20,
-      level: "All Levels",
-      imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&q=80",
-      bgColor: "from-purple-500 to-indigo-600",
-      category: "energy",
-      featured: true
+  // Fetch meditation journeys
+  const { data: journeys = [], isLoading: isJourneysLoading, error: journeysError } = useQuery({
+    queryKey: ['meditationJourneys'],
+    queryFn: getAllJourneys,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  // Fetch user's schedule if authenticated
+  const { data: scheduleItems = [], isLoading: isScheduleLoading } = useQuery({
+    queryKey: ['userSchedule', user?.uid],
+    queryFn: () => user?.uid ? getUserSchedule(user.uid) : Promise.resolve([]),
+    enabled: !!user?.uid,
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  // Mutations for schedule operations
+  const addScheduleMutation = useMutation({
+    mutationFn: (newItem: Omit<ScheduleItem, "id" | "userId">) => {
+      if (!user?.uid) throw new Error("User not authenticated");
+      return addScheduleItem(user.uid, newItem);
     },
-    {
-      id: "astral-travel",
-      title: "Astral Travel",
-      description: "Experience a guided journey beyond the physical realm into the astral plane.",
-      duration: 30,
-      level: "Intermediate",
-      imageUrl: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=500&q=80",
-      bgColor: "from-blue-500 to-purple-600",
-      category: "advanced",
-      featured: false
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSchedule', user?.uid] });
+      setIsCustomizeScheduleOpen(false);
+      setNewScheduleItem({
+        day: "Monday",
+        practice: "",
+        time: "7:00 AM",
+        duration: 20
+      });
+      toast({
+        title: "Schedule Updated",
+        description: "New meditation session added to your schedule."
+      });
     },
-    {
-      id: "gita-reflections",
-      title: "Gita Reflections",
-      description: "Deep contemplation on key verses from the Bhagavad Gita for spiritual insight.",
-      duration: 25,
-      level: "All Levels",
-      imageUrl: "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=500&q=80", 
-      bgColor: "from-gold-400 to-amber-600",
-      category: "scripture",
-      featured: true
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to add schedule item",
+        description: error instanceof Error ? error.message : "Unknown error occurred"
+      });
+    }
+  });
+  
+  const updateScheduleMutation = useMutation({
+    mutationFn: updateScheduleItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSchedule', user?.uid] });
+      setEditingScheduleItem(null);
+      setIsCustomizeScheduleOpen(false);
+      setNewScheduleItem({
+        day: "Monday",
+        practice: "",
+        time: "7:00 AM",
+        duration: 20
+      });
+      toast({
+        title: "Schedule Updated",
+        description: "Your meditation schedule has been updated."
+      });
     },
-    {
-      id: "inner-peace",
-      title: "Inner Peace Sanctuary",
-      description: "Find refuge in a tranquil mental sanctuary cultivated through focused breathing and visualization.",
-      duration: 15,
-      level: "Beginner",
-      imageUrl: "https://images.unsplash.com/photo-1476611338391-6f395a0dd82e?w=500&q=80",
-      bgColor: "from-green-400 to-teal-500",
-      category: "beginner",
-      featured: false
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to update schedule",
+        description: error instanceof Error ? error.message : "Unknown error occurred"
+      });
+    }
+  });
+  
+  const deleteScheduleMutation = useMutation({
+    mutationFn: deleteScheduleItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSchedule', user?.uid] });
+      toast({
+        title: "Schedule Updated",
+        description: "Meditation session removed from your schedule."
+      });
     },
-    {
-      id: "cosmic-connection",
-      title: "Cosmic Connection",
-      description: "Connect with universal consciousness and explore your place in the cosmic web of existence.",
-      duration: 35,
-      level: "Advanced",
-      imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&q=80",
-      bgColor: "from-deepBlue-500 to-indigo-700",
-      category: "advanced",
-      featured: true
-    },
-    {
-      id: "divine-love",
-      title: "Divine Love Meditation",
-      description: "Open your heart to universal love and compassion through bhakti-inspired meditation.",
-      duration: 20,
-      level: "All Levels",
-      imageUrl: "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=500&q=80",
-      bgColor: "from-pink-400 to-rose-600",
-      category: "devotional",
-      featured: false
-    },
-    {
-      id: "sound-healing",
-      title: "Sacred Sound Healing",
-      description: "Harness the vibrational power of mantras and primordial sounds to harmonize your energy field.",
-      duration: 25,
-      level: "All Levels",
-      imageUrl: "https://images.unsplash.com/photo-1477346611705-65d1883cee1e?w=500&q=80",
-      bgColor: "from-amber-400 to-orange-600",
-      category: "energy",
-      featured: false
-    },
-    {
-      id: "krishna-consciousness",
-      title: "Krishna Consciousness",
-      description: "Connect with the divine presence of Lord Krishna through devotional visualization.",
-      duration: 30,
-      level: "All Levels",
-      imageUrl: "https://images.unsplash.com/photo-1499002238440-d264edd596ec?w=500&q=80",
-      bgColor: "from-blue-400 to-blue-600",
-      category: "devotional",
-      featured: true
-    },
-    {
-      id: "mindful-awareness",
-      title: "Mindful Awareness",
-      description: "Develop presence and clarity through simple but powerful mindfulness techniques.",
-      duration: 10,
-      level: "Beginner",
-      imageUrl: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=500&q=80",
-      bgColor: "from-yellow-400 to-amber-500",
-      category: "beginner",
-      featured: false
-    },
-  ];
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete schedule item",
+        description: error instanceof Error ? error.message : "Unknown error occurred"
+      });
+    }
+  });
 
   // Filter journeys based on search, category, and duration
   const filteredJourneys = journeys.filter(journey => {
@@ -212,7 +201,7 @@ const MeditationPortal = () => {
     return matchesSearch && matchesCategory && matchesDuration;
   });
 
-  // Group journeys by category for the tabs
+  // Group journeys by category
   const featuredJourneys = filteredJourneys.filter(journey => journey.featured);
   const beginnerJourneys = filteredJourneys.filter(journey => journey.category === "beginner");
   const energyJourneys = filteredJourneys.filter(journey => journey.category === "energy");
@@ -220,18 +209,7 @@ const MeditationPortal = () => {
   const advancedJourneys = filteredJourneys.filter(journey => journey.category === "advanced");
   const scriptureJourneys = filteredJourneys.filter(journey => journey.category === "scripture");
 
-  // Weekly schedule data with unique IDs
-  const [weeklySchedule, setWeeklySchedule] = useState<ScheduleItem[]>([
-    { id: "1", day: "Monday", practice: "Mindful Awareness", time: "7:00 AM", duration: 10 },
-    { id: "2", day: "Tuesday", practice: "Chakra Healing", time: "6:30 AM", duration: 20 },
-    { id: "3", day: "Wednesday", practice: "Divine Love Meditation", time: "7:00 AM", duration: 20 },
-    { id: "4", day: "Thursday", practice: "Gita Reflections", time: "6:30 AM", duration: 25 },
-    { id: "5", day: "Friday", practice: "Sacred Sound Healing", time: "7:00 AM", duration: 25 },
-    { id: "6", day: "Saturday", practice: "Krishna Consciousness", time: "8:00 AM", duration: 30 },
-    { id: "7", day: "Sunday", practice: "Cosmic Connection", time: "8:00 AM", duration: 35 },
-  ]);
-
-  // Stats data
+  // Stats data (in a real app, this would come from Firestore)
   const userStats = {
     totalSessions: 24,
     totalMinutes: 540,
@@ -281,28 +259,11 @@ const MeditationPortal = () => {
       return;
     }
     
-    const id = Date.now().toString();
-    const newItem: ScheduleItem = {
-      id,
+    addScheduleMutation.mutate({
       day: newScheduleItem.day || "Monday",
       practice: newScheduleItem.practice || "",
       time: newScheduleItem.time || "7:00 AM",
       duration: newScheduleItem.duration || 20,
-    };
-    
-    setWeeklySchedule(prev => [...prev, newItem]);
-    
-    // Reset form
-    setNewScheduleItem({
-      day: "Monday",
-      practice: "",
-      time: "7:00 AM",
-      duration: 20
-    });
-    
-    toast({
-      title: "Schedule Updated",
-      description: `Added ${newItem.practice} to your ${newItem.day} schedule.`
     });
   };
   
@@ -314,6 +275,7 @@ const MeditationPortal = () => {
       time: item.time,
       duration: item.duration
     });
+    setIsCustomizeScheduleOpen(true);
   };
   
   const handleUpdateScheduleItem = () => {
@@ -328,42 +290,18 @@ const MeditationPortal = () => {
       return;
     }
     
-    setWeeklySchedule(prev => 
-      prev.map(item => 
-        item.id === editingScheduleItem.id 
-          ? { 
-              ...item, 
-              day: newScheduleItem.day || item.day,
-              practice: newScheduleItem.practice || item.practice,
-              time: newScheduleItem.time || item.time,
-              duration: newScheduleItem.duration || item.duration
-            } 
-          : item
-      )
-    );
-    
-    // Reset form and editing state
-    setEditingScheduleItem(null);
-    setNewScheduleItem({
-      day: "Monday",
-      practice: "",
-      time: "7:00 AM",
-      duration: 20
-    });
-    
-    toast({
-      title: "Schedule Updated",
-      description: `Updated your ${newScheduleItem.day} schedule.`
+    updateScheduleMutation.mutate({
+      id: editingScheduleItem.id,
+      userId: editingScheduleItem.userId,
+      day: newScheduleItem.day || editingScheduleItem.day,
+      practice: newScheduleItem.practice || editingScheduleItem.practice,
+      time: newScheduleItem.time || editingScheduleItem.time,
+      duration: newScheduleItem.duration || editingScheduleItem.duration
     });
   };
   
   const handleDeleteScheduleItem = (id: string) => {
-    setWeeklySchedule(prev => prev.filter(item => item.id !== id));
-    
-    toast({
-      title: "Schedule Updated",
-      description: "Removed session from your schedule."
-    });
+    deleteScheduleMutation.mutate(id);
   };
   
   const handleCancelEdit = () => {
@@ -390,6 +328,43 @@ const MeditationPortal = () => {
   const days = [
     "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
   ];
+
+  // Show loading state if data is loading
+  if (isJourneysLoading) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16 bg-gradient-to-b from-deepBlue-600/20 to-deepBlue-600/5 dark:from-deepBlue-800 dark:to-deepBlue-900 min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300">Loading meditation journeys...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show error state if there was an error loading data
+  if (journeysError) {
+    return (
+      <div className="min-h-screen">
+        <Navbar />
+        <main className="pt-24 pb-16 bg-gradient-to-b from-deepBlue-600/20 to-deepBlue-600/5 dark:from-deepBlue-800 dark:to-deepBlue-900 min-h-screen flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto p-6 bg-white/90 dark:bg-deepBlue-700/50 rounded-lg shadow-lg">
+            <h2 className="text-xl font-bold text-red-600 mb-4">Error Loading Meditation Data</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              We're having trouble loading the meditation journeys. Please try again later.
+            </p>
+            <Button onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -631,61 +606,79 @@ const MeditationPortal = () => {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="text-left border-b border-gray-200 dark:border-gray-700">
-                              <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Day</th>
-                              <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Practice</th>
-                              <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Time</th>
-                              <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Duration</th>
-                              <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400"></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {weeklySchedule.map((session, index) => {
-                              // Find the matching journey if available
-                              const matchingJourney = journeys.find(j => j.title === session.practice);
-                              
-                              return (
-                                <tr key={index} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                  <td className="py-3 text-sm">{session.day}</td>
-                                  <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
-                                  <td className="py-3 text-sm">{session.time}</td>
-                                  <td className="py-3 text-sm">{session.duration} min</td>
-                                  <td className="py-3 text-right flex gap-2 justify-end">
-                                    <Button 
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleScheduleSession(session.day, session.practice)}
-                                      className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 btn btn-primary"
-                                    >
-                                      <PlayCircle className="h-4 w-4 mr-1" />
-                                      Start
-                                    </Button>
-                                    <Button 
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleEditScheduleItem(session)}
-                                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10"
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteScheduleItem(session.id)}
-                                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
-                                    >
-                                      <Trash className="h-4 w-4" />
-                                    </Button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
+                      {isScheduleLoading ? (
+                        <div className="text-center py-8">
+                          <div className="w-10 h-10 border-4 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-gray-500 dark:text-gray-400">Loading your schedule...</p>
+                        </div>
+                      ) : scheduleItems.length === 0 ? (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500 dark:text-gray-400 mb-4">You haven't added any meditation sessions to your schedule yet.</p>
+                          <Button 
+                            onClick={() => setIsCustomizeScheduleOpen(true)}
+                            className="btn btn-primary"
+                          >
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            Add Your First Session
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="text-left border-b border-gray-200 dark:border-gray-700">
+                                <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Day</th>
+                                <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Practice</th>
+                                <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Time</th>
+                                <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400">Duration</th>
+                                <th className="pb-2 text-sm font-medium text-gray-500 dark:text-gray-400"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {scheduleItems.map((session, index) => {
+                                // Find the matching journey if available
+                                const matchingJourney = journeys.find(j => j.title === session.practice);
+                                
+                                return (
+                                  <tr key={session.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                    <td className="py-3 text-sm">{session.day}</td>
+                                    <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
+                                    <td className="py-3 text-sm">{session.time}</td>
+                                    <td className="py-3 text-sm">{session.duration} min</td>
+                                    <td className="py-3 text-right flex gap-2 justify-end">
+                                      <Button 
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleScheduleSession(session.day, session.practice)}
+                                        className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 btn btn-primary"
+                                      >
+                                        <PlayCircle className="h-4 w-4 mr-1" />
+                                        Start
+                                      </Button>
+                                      <Button 
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleEditScheduleItem(session)}
+                                        className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                                      >
+                                        <Pencil className="h-4 w-4" />
+                                      </Button>
+                                      <Button 
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => handleDeleteScheduleItem(session.id)}
+                                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                      >
+                                        <Trash className="h-4 w-4" />
+                                      </Button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </CardContent>
                     <CardFooter>
                       <Dialog open={isCustomizeScheduleOpen} onOpenChange={setIsCustomizeScheduleOpen}>
@@ -791,13 +784,22 @@ const MeditationPortal = () => {
                                   variant="default" 
                                   onClick={handleUpdateScheduleItem}
                                   className="w-full btn btn-primary"
+                                  disabled={updateScheduleMutation.isPending}
                                 >
-                                  Update Schedule
+                                  {updateScheduleMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Updating...
+                                    </>
+                                  ) : (
+                                    "Update Schedule"
+                                  )}
                                 </Button>
                                 <Button 
                                   variant="outline" 
                                   onClick={handleCancelEdit}
                                   className="w-full btn btn-outline"
+                                  disabled={updateScheduleMutation.isPending}
                                 >
                                   Cancel
                                 </Button>
@@ -807,8 +809,16 @@ const MeditationPortal = () => {
                                 variant="default" 
                                 onClick={handleAddScheduleItem}
                                 className="w-full btn btn-primary"
+                                disabled={addScheduleMutation.isPending}
                               >
-                                Add to Schedule
+                                {addScheduleMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Adding...
+                                  </>
+                                ) : (
+                                  "Add to Schedule"
+                                )}
                               </Button>
                             )}
                           </DialogFooter>
@@ -915,99 +925,7 @@ const MeditationPortal = () => {
                   </div>
                 )}
                 
-                {/* Energy Work Journeys */}
-                {energyJourneys.length > 0 && (
-                  <div id="energy" className="max-w-5xl mx-auto mb-12 animate-fade-in">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
-                        <Sparkle className="h-5 w-5 mr-2 text-gold-500" />
-                        Energy Work
-                      </h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {energyJourneys.map(journey => (
-                        <div 
-                          key={journey.id}
-                          onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
-                        >
-                          <div className="relative h-48 overflow-hidden">
-                            <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
-                            <img 
-                              src={journey.imageUrl} 
-                              alt={journey.title} 
-                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            <div className="absolute bottom-0 left-0 p-4">
-                              <h3 className="text-xl font-bold text-white">{journey.title}</h3>
-                              <div className="flex items-center mt-1 text-white/80 text-sm">
-                                <span>{journey.duration} minutes</span>
-                                <span className="mx-2">•</span>
-                                <span>{journey.level}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="p-5">
-                            <p className="text-gray-600 dark:text-gray-300 text-sm">
-                              {journey.description}
-                            </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
-                              Begin Journey
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Devotional Journeys */}
-                {devotionalJourneys.length > 0 && (
-                  <div id="devotional" className="max-w-5xl mx-auto mb-12 animate-fade-in">
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center section-heading">
-                        <Heart className="h-5 w-5 mr-2 text-gold-500" />
-                        Devotional Practices
-                      </h2>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {devotionalJourneys.map(journey => (
-                        <div 
-                          key={journey.id}
-                          onClick={() => setSelectedJourney(journey.id)}
-                          className="bg-white dark:bg-deepBlue-700/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer group card divine-card"
-                        >
-                          <div className="relative h-48 overflow-hidden">
-                            <div className={`absolute inset-0 bg-gradient-to-r ${journey.bgColor} opacity-80`}></div>
-                            <img 
-                              src={journey.imageUrl} 
-                              alt={journey.title} 
-                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            <div className="absolute bottom-0 left-0 p-4">
-                              <h3 className="text-xl font-bold text-white">{journey.title}</h3>
-                              <div className="flex items-center mt-1 text-white/80 text-sm">
-                                <span>{journey.duration} minutes</span>
-                                <span className="mx-2">•</span>
-                                <span>{journey.level}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="p-5">
-                            <p className="text-gray-600 dark:text-gray-300 text-sm">
-                              {journey.description}
-                            </p>
-                            <button className="mt-4 w-full py-2 bg-gradient-to-r from-gold-400 to-gold-600 text-white rounded-md font-medium hover:from-gold-500 hover:to-gold-700 transition-colors duration-300 btn btn-primary">
-                              Begin Journey
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Show more categories... */}
                 
                 {/* Show a message if no journeys match the filters */}
                 {filteredJourneys.length === 0 && (
