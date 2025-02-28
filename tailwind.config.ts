@@ -102,7 +102,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Add the custom theme colors 
+				'background-light': 'hsl(var(--background-light))',
+				'text-light': 'hsl(var(--text-light))',
+				'background-dark': 'hsl(var(--background-dark))',
+				'text-dark': 'hsl(var(--text-dark))',
+				'primary-dark': 'hsl(var(--primary-dark))',
+				'secondary-dark': 'hsl(var(--secondary-dark))',
+				'accent-dark': 'hsl(var(--accent-dark))',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
