@@ -2,8 +2,12 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import QuizCard from "@/components/QuizCard";
+import { useAuth } from "@/context/AuthContext";
+import AuthRequired from "@/components/AuthRequired";
 
 const Quizzes = () => {
+  const { isAuthenticated } = useAuth();
+  
   // Sample data for quizzes
   const quizzes = [
     {
@@ -82,41 +86,52 @@ const Quizzes = () => {
             </p>
           </div>
           
-          {/* Beginner Level */}
-          <div className="mb-16 animate-fade-in">
-            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
-              Beginner Level
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {easyQuizzes.map((quiz) => (
-                <QuizCard key={quiz.id} {...quiz} />
-              ))}
+          {isAuthenticated ? (
+            <>
+              {/* Beginner Level */}
+              <div className="mb-16 animate-fade-in">
+                <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
+                  Beginner Level
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {easyQuizzes.map((quiz) => (
+                    <QuizCard key={quiz.id} {...quiz} />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Intermediate Level */}
+              <div className="mb-16 animate-fade-in">
+                <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
+                  Intermediate Level
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mediumQuizzes.map((quiz) => (
+                    <QuizCard key={quiz.id} {...quiz} />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Advanced Level */}
+              <div className="animate-fade-in">
+                <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
+                  Advanced Level
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {hardQuizzes.map((quiz) => (
+                    <QuizCard key={quiz.id} {...quiz} />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="max-w-4xl mx-auto">
+              <AuthRequired 
+                message="Please log in or sign up to access our spiritual knowledge quizzes." 
+                ctaText="authenticating"
+              />
             </div>
-          </div>
-          
-          {/* Intermediate Level */}
-          <div className="mb-16 animate-fade-in">
-            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
-              Intermediate Level
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mediumQuizzes.map((quiz) => (
-                <QuizCard key={quiz.id} {...quiz} />
-              ))}
-            </div>
-          </div>
-          
-          {/* Advanced Level */}
-          <div className="animate-fade-in">
-            <h2 className="text-xl md:text-2xl font-semibold mb-6 text-deepBlue-600 dark:text-white">
-              Advanced Level
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {hardQuizzes.map((quiz) => (
-                <QuizCard key={quiz.id} {...quiz} />
-              ))}
-            </div>
-          </div>
+          )}
         </div>
       </main>
       

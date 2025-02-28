@@ -2,8 +2,12 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatBot from "@/components/ChatBot";
+import { useAuth } from "@/context/AuthContext";
+import AuthRequired from "@/components/AuthRequired";
 
 const Chat = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -21,7 +25,14 @@ const Chat = () => {
           </div>
           
           <div className="max-w-4xl mx-auto animate-scale-in">
-            <ChatBot />
+            {isAuthenticated ? (
+              <ChatBot />
+            ) : (
+              <AuthRequired 
+                message="Please log in or sign up to chat with our Bhagavad Gita Wisdom Guide." 
+                ctaText="logging in"
+              />
+            )}
           </div>
         </div>
       </main>

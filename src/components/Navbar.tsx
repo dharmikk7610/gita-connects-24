@@ -1,8 +1,20 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon, BookOpen } from "lucide-react";
+import { Menu, X, Sun, Moon, BookOpen, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import LoginModal from "./LoginModal";
+import SignupModal from "./SignupModal";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +22,11 @@ const Navbar = () => {
   const [darkMode, setDarkMode] = useState(() => {
     return document.documentElement.classList.contains("dark");
   });
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
   
   const location = useLocation();
+  const { user, logout, isAuthenticated } = useAuth();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -24,6 +39,36 @@ const Navbar = () => {
     } else {
       document.documentElement.classList.add("dark");
     }
+  };
+
+  const openLoginModal = () => {
+    setIsLoginModalOpen(true);
+  };
+
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const openSignupModal = () => {
+    setIsSignupModalOpen(true);
+  };
+
+  const closeSignupModal = () => {
+    setIsSignupModalOpen(false);
+  };
+
+  const switchToSignup = () => {
+    setIsLoginModalOpen(false);
+    setIsSignupModalOpen(true);
+  };
+
+  const switchToLogin = () => {
+    setIsSignupModalOpen(false);
+    setIsLoginModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   useEffect(() => {
@@ -98,9 +143,64 @@ const Navbar = () => {
                 <Moon className="h-5 w-5 text-deepBlue-500" />
               )}
             </Button>
-            <Button className="bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-white border-none">
-              Login
-            </Button>
+            
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      {user?.avatarUrl ? (
+                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      ) : (
+                        <AvatarFallback className="bg-gold-100 text-gold-700">
+                          {user?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user?.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem as={Link} to="/profile">
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem as={Link} to="/bookmarks">
+                    Bookmarks
+                  </DropdownMenuItem>
+                  <DropdownMenuItem as={Link} to="/settings">
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline"
+                  className="border-gold-300 hover:border-gold-500 text-deepBlue-600 dark:text-gold-300"
+                  onClick={openSignupModal}
+                >
+                  Sign Up
+                </Button>
+                <Button 
+                  className="bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-white border-none"
+                  onClick={openLoginModal}
+                >
+                  Login
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Mobile Navigation Toggle */}
@@ -153,13 +253,55 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <Button className="w-full bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-white border-none mt-2">
-                Login
-              </Button>
+              
+              {isAuthenticated ? (
+                <>
+                  <div className="py-2 px-4 flex items-center space-x-3 border-t border-gold-200/30 dark:border-gold-800/20 mt-2">
+                    <Avatar className="h-10 w-10">
+                      {user?.avatarUrl ? (
+                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                      ) : (
+                        <AvatarFallback className="bg-gold-100 text-gold-700">
+                          {user?.name?.charAt(0) || "U"}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{user?.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
+                    </div>
+                  </div>
+                  <Button onClick={handleLogout} variant="outline" className="w-full border-gold-300 text-red-500">
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={openSignupModal} className="w-full bg-gradient-to-r from-gold-400 to-gold-600 hover:from-gold-500 hover:to-gold-700 text-white border-none">
+                    Sign Up
+                  </Button>
+                  <Button onClick={openLoginModal} variant="outline" className="w-full border-gold-300">
+                    Login
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Auth Modals */}
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
+        onSwitchToSignup={switchToSignup}
+      />
+      
+      <SignupModal
+        isOpen={isSignupModalOpen}
+        onClose={closeSignupModal}
+        onSwitchToLogin={switchToLogin}
+      />
     </nav>
   );
 };
