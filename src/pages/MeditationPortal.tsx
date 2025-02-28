@@ -204,10 +204,21 @@ const MeditationPortal = () => {
   };
 
   const handleScheduleSession = (day: string, practice: string) => {
-    toast({
-      title: "Session Scheduled",
-      description: `${practice} has been added to your calendar for ${day}.`,
-    });
+    // Find the corresponding journey to start
+    const journeyToStart = journeys.find(j => j.title === practice);
+    
+    if (journeyToStart) {
+      setSelectedJourney(journeyToStart.id);
+      toast({
+        title: "Session Started",
+        description: `Starting your ${practice} session scheduled for ${day}.`,
+      });
+    } else {
+      toast({
+        title: "Session Scheduled",
+        description: `${practice} has been added to your calendar for ${day}.`,
+      });
+    }
   };
 
   const handleResetFilters = () => {
@@ -215,6 +226,10 @@ const MeditationPortal = () => {
     setActiveCategory("all");
     setDurationFilter([5, 40]);
     setIsFilterOpen(false);
+  };
+
+  const findJourneyForPractice = (practiceName: string) => {
+    return journeys.find(journey => journey.title === practiceName);
   };
 
   return (
@@ -469,25 +484,30 @@ const MeditationPortal = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {weeklySchedule.map((session, index) => (
-                              <tr key={index} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                                <td className="py-3 text-sm">{session.day}</td>
-                                <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
-                                <td className="py-3 text-sm">{session.time}</td>
-                                <td className="py-3 text-sm">{session.duration} min</td>
-                                <td className="py-3 text-right">
-                                  <Button 
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleScheduleSession(session.day, session.practice)}
-                                    className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 btn btn-primary"
-                                  >
-                                    <PlayCircle className="h-4 w-4 mr-1" />
-                                    Start
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
+                            {weeklySchedule.map((session, index) => {
+                              // Find the matching journey if available
+                              const matchingJourney = journeys.find(j => j.title === session.practice);
+                              
+                              return (
+                                <tr key={index} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                  <td className="py-3 text-sm">{session.day}</td>
+                                  <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
+                                  <td className="py-3 text-sm">{session.time}</td>
+                                  <td className="py-3 text-sm">{session.duration} min</td>
+                                  <td className="py-3 text-right">
+                                    <Button 
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleScheduleSession(session.day, session.practice)}
+                                      className="text-gold-500 hover:text-gold-600 hover:bg-gold-50 dark:hover:bg-gold-900/10 btn btn-primary"
+                                    >
+                                      <PlayCircle className="h-4 w-4 mr-1" />
+                                      Start
+                                    </Button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
