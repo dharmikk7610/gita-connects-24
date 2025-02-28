@@ -1,7 +1,9 @@
 
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Loader2, MessageSquare } from "lucide-react";
+import { Send, User, Loader2, MessageSquare, Phone, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SpiritualGuideCall from "./SpiritualGuideCall";
+import ActiveCall from "./ActiveCall";
 
 interface Message {
   id: string;
@@ -22,6 +24,10 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [language, setLanguage] = useState<"english" | "hindi">("english");
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [isActiveCallOpen, setIsActiveCallOpen] = useState(false);
+  const [callType, setCallType] = useState<"audio" | "video">("audio");
+  const [selectedGuide, setSelectedGuide] = useState<{id: string; name: string; imageUrl: string} | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +117,59 @@ const ChatBot = () => {
     setLanguage((prev) => (prev === "english" ? "hindi" : "english"));
   };
 
+  const openCallModal = () => {
+    setIsCallModalOpen(true);
+  };
+
+  const closeCallModal = () => {
+    setIsCallModalOpen(false);
+  };
+
+  const handleStartCall = (guideId: string, type: "audio" | "video") => {
+    // Mocked guide data - in a real app, you would fetch this from the backend
+    const mockGuides = [
+      {
+        id: "guide-1",
+        name: "Swami Ananda",
+        imageUrl: "https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=500&q=80",
+      },
+      {
+        id: "guide-2",
+        name: "Acharya Priya",
+        imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&q=80",
+      },
+      {
+        id: "guide-3",
+        name: "Guru Dev",
+        imageUrl: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=500&q=80",
+      }
+    ];
+    
+    const guide = mockGuides.find(g => g.id === guideId);
+    
+    if (guide) {
+      setSelectedGuide(guide);
+      setCallType(type);
+      setIsCallModalOpen(false);
+      setIsActiveCallOpen(true);
+    }
+  };
+
+  const handleEndCall = () => {
+    setIsActiveCallOpen(false);
+    setSelectedGuide(null);
+    
+    // Add a message about the completed call
+    const callEndedMessage: Message = {
+      id: Date.now().toString(),
+      text: `Your call with ${selectedGuide?.name} has ended. If you need further guidance, you can initiate another call or continue chatting.`,
+      sender: "bot",
+      timestamp: new Date(),
+    };
+    
+    setMessages(prevMessages => [...prevMessages, callEndedMessage]);
+  };
+
   // Auto-scroll to the bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -131,14 +190,25 @@ const ChatBot = () => {
             </p>
           </div>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleLanguage}
-          className="text-sm border-gold-200 dark:border-gold-800/30 hover:bg-gold-50 dark:hover:bg-gold-900/20"
-        >
-          {language === "english" ? "हिंदी में पूछें" : "Ask in English"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleLanguage}
+            className="text-sm border-gold-200 dark:border-gold-800/30 hover:bg-gold-50 dark:hover:bg-gold-900/20"
+          >
+            {language === "english" ? "हिंदी में पूछें" : "Ask in English"}
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={openCallModal}
+            className="text-sm bg-gold-500 hover:bg-gold-600 text-white flex items-center gap-1"
+          >
+            <Phone className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Talk to a Guide</span>
+          </Button>
+        </div>
       </div>
 
       {/* Messages */}
@@ -235,10 +305,38 @@ const ChatBot = () => {
             )}
           </Button>
         </div>
-        <p className="text-xs text-center text-gray-400 dark:text-gray-500 mt-2">
-          Ask questions about dharma, karma, meditation, and Bhagavad Gita teachings
-        </p>
+        <div className="flex justify-between items-center mt-2">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Ask questions about dharma, karma, meditation, and Bhagavad Gita teachings
+          </p>
+          <Button
+            variant="link"
+            size="sm"
+            onClick={openCallModal}
+            className="text-xs text-gold-500 hover:text-gold-600 p-0 h-auto flex items-center gap-1"
+          >
+            <Phone className="h-3 w-3" />
+            <span>Need deeper guidance? Talk to a spiritual guide</span>
+          </Button>
+        </div>
       </div>
+
+      {/* Call a Spiritual Guide Modal */}
+      <SpiritualGuideCall 
+        isOpen={isCallModalOpen}
+        onClose={closeCallModal}
+        onStartCall={handleStartCall}
+      />
+
+      {/* Active Call UI */}
+      {selectedGuide && (
+        <ActiveCall 
+          isOpen={isActiveCallOpen}
+          onClose={handleEndCall}
+          guide={selectedGuide}
+          callType={callType}
+        />
+      )}
     </div>
   );
 };
