@@ -1,8 +1,23 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, Moon, Sparkles, RefreshCw } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { 
+  ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, Moon, 
+  Sparkles, RefreshCw, Settings, Bookmark, Share2, Download
+} from "lucide-react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Journey {
   id: string;
@@ -23,9 +38,20 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
   const [mood, setMood] = useState<"peaceful" | "anxious" | "curious" | "grateful">("peaceful");
   const [stars, setStars] = useState<{id: number; x: number; y: number, size: number, opacity: number}[]>([]);
+  const [breathCount, setBreathCount] = useState(0);
+  const [isBreathMode, setIsBreathMode] = useState(false);
+  const [breathPhase, setBreathPhase] = useState<"inhale" | "hold" | "exhale" | "rest">("rest");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [backgroundSound, setBackgroundSound] = useState<"nature" | "ambient" | "rain" | "none">("ambient");
+  const [mantraText, setMantraText] = useState("Om Shanti Om");
+  const [showMantra, setShowMantra] = useState(false);
+  const [autoProgress, setAutoProgress] = useState(true);
+  const animationFrameId = useRef<number | null>(null);
+  const { toast } = useToast();
   
   // Create star field effect
   useEffect(() => {
@@ -43,7 +69,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
   useEffect(() => {
     let timer: number;
     
-    if (isPlaying) {
+    if (isPlaying && autoProgress) {
       timer = window.setInterval(() => {
         setCurrentTime(prev => {
           const newTime = prev + 1;
@@ -62,7 +88,61 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isPlaying, journey.duration]);
+  }, [isPlaying, journey.duration, autoProgress]);
+  
+  // Handle breathing animation
+  useEffect(() => {
+    let animationTimer: NodeJS.Timeout;
+    
+    if (isBreathMode && isPlaying) {
+      const breathCycle = () => {
+        // Inhale for 4 seconds
+        setBreathPhase("inhale");
+        animationTimer = setTimeout(() => {
+          // Hold for 4 seconds
+          setBreathPhase("hold");
+          animationTimer = setTimeout(() => {
+            // Exhale for 6 seconds
+            setBreathPhase("exhale");
+            animationTimer = setTimeout(() => {
+              // Rest for 2 seconds
+              setBreathPhase("rest");
+              animationTimer = setTimeout(() => {
+                // Increment breath count
+                setBreathCount(prev => prev + 1);
+                // Repeat cycle
+                breathCycle();
+              }, 2000);
+            }, 6000);
+          }, 4000);
+        }, 4000);
+      };
+      
+      breathCycle();
+    }
+    
+    return () => {
+      if (animationTimer) clearTimeout(animationTimer);
+    };
+  }, [isBreathMode, isPlaying]);
+  
+  // Animation loop for the visualization
+  useEffect(() => {
+    const animate = () => {
+      // Animation logic here - could be particle movement, color transitions, etc.
+      animationFrameId.current = requestAnimationFrame(animate);
+    };
+    
+    if (isPlaying) {
+      animationFrameId.current = requestAnimationFrame(animate);
+    }
+    
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [isPlaying]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -72,10 +152,80 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
   
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
+    
+    if (!isPlaying) {
+      toast({
+        title: "Meditation Started",
+        description: `Beginning your ${journey.title} journey. Find a comfortable position.`,
+      });
+    }
   };
   
   const handleMoodChange = (newMood: "peaceful" | "anxious" | "curious" | "grateful") => {
     setMood(newMood);
+    toast({
+      title: "Meditation Focus Changed",
+      description: `Your meditation is now focused on ${newMood} energy.`,
+    });
+  };
+  
+  const toggleBreathingMode = () => {
+    setIsBreathMode(!isBreathMode);
+    setBreathCount(0);
+    setBreathPhase("rest");
+    
+    toast({
+      title: isBreathMode ? "Breathing Guide Disabled" : "Breathing Guide Enabled",
+      description: isBreathMode 
+        ? "Continue your meditation at your natural rhythm." 
+        : "Follow the visual cues for guided breathing.",
+    });
+  };
+  
+  const toggleMantra = () => {
+    setShowMantra(!showMantra);
+  };
+  
+  const handleVolumeChange = (newVolume: number[]) => {
+    setVolume(newVolume[0]);
+    if (newVolume[0] === 0) {
+      setIsMuted(true);
+    } else if (isMuted) {
+      setIsMuted(false);
+    }
+  };
+  
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+  
+  const handleSaveProgress = () => {
+    toast({
+      title: "Progress Saved",
+      description: `Your meditation progress has been saved. You can continue later.`,
+    });
+  };
+  
+  const handleShareMeditation = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      toast({
+        title: "Link Copied",
+        description: "Share this link with others to invite them to this meditation journey.",
+      });
+    });
+  };
+  
+  const getBreathingInstructions = () => {
+    switch (breathPhase) {
+      case "inhale":
+        return "Breathe in slowly...";
+      case "hold":
+        return "Hold your breath...";
+      case "exhale":
+        return "Exhale gently...";
+      case "rest":
+        return "Relax...";
+    }
   };
   
   const getMoodGuidance = () => {
@@ -88,6 +238,19 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
         return "Open your mind to the mysteries of consciousness. Ask yourself: 'Who am I beyond my thoughts?' and let insights arise naturally.";
       case "grateful":
         return "Bring to mind three blessings in your life. Feel gratitude filling your heart with golden light, expanding with each breath.";
+    }
+  };
+  
+  const getBackgroundSoundName = () => {
+    switch (backgroundSound) {
+      case "nature":
+        return "Forest Sounds";
+      case "ambient":
+        return "Ambient Music";
+      case "rain":
+        return "Gentle Rain";
+      case "none":
+        return "No Background";
     }
   };
 
@@ -131,8 +294,127 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
             <p className="text-gray-300 text-sm">{journey.duration} minute journey</p>
           </div>
           
-          <div className="w-10"></div> {/* For balance */}
+          <Drawer open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DrawerTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/10"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <div className="mx-auto w-full max-w-lg">
+                <DrawerHeader>
+                  <DrawerTitle>Meditation Settings</DrawerTitle>
+                  <DrawerDescription>Customize your meditation experience</DrawerDescription>
+                </DrawerHeader>
+                <div className="p-4 space-y-6">
+                  {/* Background Sound Selection */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Background Sound</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["nature", "ambient", "rain", "none"].map(sound => (
+                        <Button 
+                          key={sound}
+                          variant={backgroundSound === sound ? "default" : "outline"}
+                          onClick={() => setBackgroundSound(sound as any)}
+                          className="w-full justify-start"
+                        >
+                          {sound === "nature" && <Sparkles className="h-4 w-4 mr-2" />}
+                          {sound === "ambient" && <Moon className="h-4 w-4 mr-2" />}
+                          {sound === "rain" && <Download className="h-4 w-4 mr-2" />}
+                          {sound === "none" && <VolumeX className="h-4 w-4 mr-2" />}
+                          {sound.charAt(0).toUpperCase() + sound.slice(1)}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Mantra settings */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Personal Mantra</h3>
+                    <input 
+                      type="text" 
+                      value={mantraText}
+                      onChange={(e) => setMantraText(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md mb-2"
+                      placeholder="Enter your mantra..."
+                    />
+                    <div className="flex items-center">
+                      <input 
+                        type="checkbox" 
+                        id="show-mantra" 
+                        checked={showMantra}
+                        onChange={() => setShowMantra(!showMantra)}
+                        className="mr-2"
+                      />
+                      <label htmlFor="show-mantra" className="text-sm">Display mantra during meditation</label>
+                    </div>
+                  </div>
+                  
+                  {/* Auto-progress setting */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Timer Settings</h3>
+                    <div className="flex items-center">
+                      <input 
+                        type="checkbox" 
+                        id="auto-progress" 
+                        checked={autoProgress}
+                        onChange={() => setAutoProgress(!autoProgress)}
+                        className="mr-2"
+                      />
+                      <label htmlFor="auto-progress" className="text-sm">Auto-progress through meditation</label>
+                    </div>
+                  </div>
+                </div>
+                <DrawerFooter>
+                  <Button onClick={() => setIsSettingsOpen(false)}>Apply Settings</Button>
+                  <DrawerClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </div>
+            </DrawerContent>
+          </Drawer>
         </div>
+        
+        {/* Breathing guide */}
+        {isBreathMode && isPlaying && (
+          <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white z-20">
+            <div className="mb-2">
+              <p className="text-xl font-medium">{getBreathingInstructions()}</p>
+              <p className="text-sm text-white/70">Breath count: {breathCount}</p>
+            </div>
+            <div className="relative w-20 h-20 mx-auto">
+              <div 
+                className={`absolute inset-0 rounded-full bg-teal-500/30 ${
+                  breathPhase === "inhale" ? "animate-scale-in" : 
+                  breathPhase === "exhale" ? "animate-scale-out" : ""
+                }`}
+                style={{
+                  transform: breathPhase === "inhale" 
+                    ? "scale(1)" 
+                    : breathPhase === "exhale" 
+                    ? "scale(0.5)" 
+                    : breathPhase === "hold" 
+                    ? "scale(1)" 
+                    : "scale(0.5)"
+                }}
+              ></div>
+            </div>
+          </div>
+        )}
+        
+        {/* Mantra display */}
+        {showMantra && (
+          <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+            <p className="text-2xl font-medium text-white/90 animate-pulse" style={{animationDuration: '3s'}}>
+              {mantraText}
+            </p>
+          </div>
+        )}
         
         {/* Main visualization area */}
         <div className="flex-1 flex items-center justify-center">
@@ -169,16 +451,59 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
         </div>
         
         {/* Guided meditation text */}
-        <div className="mt-8 mb-10 bg-white/10 backdrop-blur-sm p-4 rounded-lg">
+        <div className="mt-8 mb-6 bg-white/10 backdrop-blur-sm p-4 rounded-lg">
           <p className="text-white text-center text-lg leading-relaxed">
             {getMoodGuidance()}
           </p>
         </div>
         
+        {/* Action buttons */}
+        <div className="flex justify-center space-x-3 mb-6">
+          <Button 
+            variant="ghost"
+            size="sm"
+            onClick={toggleBreathingMode}
+            className={`text-white hover:bg-white/10 ${isBreathMode ? 'bg-white/20' : ''}`}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Breathing Guide
+          </Button>
+          
+          <Button 
+            variant="ghost"
+            size="sm"
+            onClick={toggleMantra}
+            className={`text-white hover:bg-white/10 ${showMantra ? 'bg-white/20' : ''}`}
+          >
+            <Sparkles className="h-4 w-4 mr-1" />
+            Show Mantra
+          </Button>
+          
+          <Button 
+            variant="ghost"
+            size="sm"
+            onClick={handleSaveProgress}
+            className="text-white hover:bg-white/10"
+          >
+            <Bookmark className="h-4 w-4 mr-1" />
+            Save
+          </Button>
+          
+          <Button 
+            variant="ghost"
+            size="sm"
+            onClick={handleShareMeditation}
+            className="text-white hover:bg-white/10"
+          >
+            <Share2 className="h-4 w-4 mr-1" />
+            Share
+          </Button>
+        </div>
+        
         {/* Mood selector */}
         <div className="mb-6">
           <h3 className="text-white text-sm mb-2">Meditation Focus:</h3>
-          <div className="flex justify-center space-x-4">
+          <div className="flex justify-center space-x-2 flex-wrap">
             <Button 
               variant={mood === "peaceful" ? "default" : "ghost"} 
               size="sm"
@@ -218,6 +543,14 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
           </div>
         </div>
         
+        {/* Background sound indicator */}
+        <div className="text-center mb-4">
+          <span className="inline-flex items-center px-2 py-1 bg-white/10 rounded-full text-xs text-white">
+            <Volume2 className="h-3 w-3 mr-1" />
+            {getBackgroundSoundName()}
+          </span>
+        </div>
+        
         {/* Controls */}
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-2">
@@ -228,18 +561,31 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
           <Progress value={progress} className="h-1 bg-white/20" />
           
           <div className="flex items-center justify-between mt-4">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsMuted(!isMuted)}
-              className="text-white hover:bg-white/10"
-            >
-              {isMuted ? (
-                <VolumeX className="h-5 w-5" />
-              ) : (
-                <Volume2 className="h-5 w-5" />
-              )}
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleMute}
+                className="text-white hover:bg-white/10"
+              >
+                {isMuted ? (
+                  <VolumeX className="h-5 w-5" />
+                ) : (
+                  <Volume2 className="h-5 w-5" />
+                )}
+              </Button>
+              
+              <div className="w-24">
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                  className="h-1"
+                />
+              </div>
+            </div>
             
             <Button
               variant="outline"
@@ -254,7 +600,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
               )}
             </Button>
             
-            <div className="w-10"></div> {/* For balance */}
+            <div className="w-32"></div> {/* For balance */}
           </div>
         </div>
       </div>
