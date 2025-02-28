@@ -10,7 +10,11 @@ import {
   PlayCircle, 
   Star,
   Heart,
-  Sparkle 
+  Sparkle,
+  PlusCircle,
+  Pencil,
+  Trash,
+  X
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -21,6 +25,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   NavigationMenu,
   NavigationMenuContent,
@@ -49,8 +60,27 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
+
+// Type definition for a schedule item
+interface ScheduleItem {
+  id: string;
+  day: string;
+  practice: string;
+  time: string;
+  duration: number;
+}
 
 const MeditationPortal = () => {
   const { isAuthenticated, user } = useAuth();
@@ -59,6 +89,14 @@ const MeditationPortal = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [durationFilter, setDurationFilter] = useState([5, 40]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isCustomizeScheduleOpen, setIsCustomizeScheduleOpen] = useState(false);
+  const [editingScheduleItem, setEditingScheduleItem] = useState<ScheduleItem | null>(null);
+  const [newScheduleItem, setNewScheduleItem] = useState<Partial<ScheduleItem>>({
+    day: "Monday",
+    practice: "",
+    time: "7:00 AM",
+    duration: 20
+  });
   const { toast } = useToast();
   
   // Sample meditation journeys
@@ -182,16 +220,16 @@ const MeditationPortal = () => {
   const advancedJourneys = filteredJourneys.filter(journey => journey.category === "advanced");
   const scriptureJourneys = filteredJourneys.filter(journey => journey.category === "scripture");
 
-  // Weekly schedule data
-  const weeklySchedule = [
-    { day: "Monday", practice: "Mindful Awareness", time: "7:00 AM", duration: 10 },
-    { day: "Tuesday", practice: "Chakra Healing", time: "6:30 AM", duration: 20 },
-    { day: "Wednesday", practice: "Divine Love Meditation", time: "7:00 AM", duration: 20 },
-    { day: "Thursday", practice: "Gita Reflections", time: "6:30 AM", duration: 25 },
-    { day: "Friday", practice: "Sacred Sound Healing", time: "7:00 AM", duration: 25 },
-    { day: "Saturday", practice: "Krishna Consciousness", time: "8:00 AM", duration: 30 },
-    { day: "Sunday", practice: "Cosmic Connection", time: "8:00 AM", duration: 35 },
-  ];
+  // Weekly schedule data with unique IDs
+  const [weeklySchedule, setWeeklySchedule] = useState<ScheduleItem[]>([
+    { id: "1", day: "Monday", practice: "Mindful Awareness", time: "7:00 AM", duration: 10 },
+    { id: "2", day: "Tuesday", practice: "Chakra Healing", time: "6:30 AM", duration: 20 },
+    { id: "3", day: "Wednesday", practice: "Divine Love Meditation", time: "7:00 AM", duration: 20 },
+    { id: "4", day: "Thursday", practice: "Gita Reflections", time: "6:30 AM", duration: 25 },
+    { id: "5", day: "Friday", practice: "Sacred Sound Healing", time: "7:00 AM", duration: 25 },
+    { id: "6", day: "Saturday", practice: "Krishna Consciousness", time: "8:00 AM", duration: 30 },
+    { id: "7", day: "Sunday", practice: "Cosmic Connection", time: "8:00 AM", duration: 35 },
+  ]);
 
   // Stats data
   const userStats = {
@@ -231,6 +269,127 @@ const MeditationPortal = () => {
   const findJourneyForPractice = (practiceName: string) => {
     return journeys.find(journey => journey.title === practiceName);
   };
+  
+  // Schedule customization functions
+  const handleAddScheduleItem = () => {
+    if (!newScheduleItem.practice) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a practice for your schedule.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const id = Date.now().toString();
+    const newItem: ScheduleItem = {
+      id,
+      day: newScheduleItem.day || "Monday",
+      practice: newScheduleItem.practice || "",
+      time: newScheduleItem.time || "7:00 AM",
+      duration: newScheduleItem.duration || 20,
+    };
+    
+    setWeeklySchedule(prev => [...prev, newItem]);
+    
+    // Reset form
+    setNewScheduleItem({
+      day: "Monday",
+      practice: "",
+      time: "7:00 AM",
+      duration: 20
+    });
+    
+    toast({
+      title: "Schedule Updated",
+      description: `Added ${newItem.practice} to your ${newItem.day} schedule.`
+    });
+  };
+  
+  const handleEditScheduleItem = (item: ScheduleItem) => {
+    setEditingScheduleItem(item);
+    setNewScheduleItem({
+      day: item.day,
+      practice: item.practice,
+      time: item.time,
+      duration: item.duration
+    });
+  };
+  
+  const handleUpdateScheduleItem = () => {
+    if (!editingScheduleItem) return;
+    
+    if (!newScheduleItem.practice) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a practice for your schedule.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setWeeklySchedule(prev => 
+      prev.map(item => 
+        item.id === editingScheduleItem.id 
+          ? { 
+              ...item, 
+              day: newScheduleItem.day || item.day,
+              practice: newScheduleItem.practice || item.practice,
+              time: newScheduleItem.time || item.time,
+              duration: newScheduleItem.duration || item.duration
+            } 
+          : item
+      )
+    );
+    
+    // Reset form and editing state
+    setEditingScheduleItem(null);
+    setNewScheduleItem({
+      day: "Monday",
+      practice: "",
+      time: "7:00 AM",
+      duration: 20
+    });
+    
+    toast({
+      title: "Schedule Updated",
+      description: `Updated your ${newScheduleItem.day} schedule.`
+    });
+  };
+  
+  const handleDeleteScheduleItem = (id: string) => {
+    setWeeklySchedule(prev => prev.filter(item => item.id !== id));
+    
+    toast({
+      title: "Schedule Updated",
+      description: "Removed session from your schedule."
+    });
+  };
+  
+  const handleCancelEdit = () => {
+    setEditingScheduleItem(null);
+    setNewScheduleItem({
+      day: "Monday",
+      practice: "",
+      time: "7:00 AM",
+      duration: 20
+    });
+  };
+
+  // Time options for select
+  const timeOptions = [
+    "5:00 AM", "5:30 AM", "6:00 AM", "6:30 AM", "7:00 AM", "7:30 AM",
+    "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM",
+    "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM",
+    "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM",
+    "5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM", "7:00 PM", "7:30 PM",
+    "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM", "10:00 PM"
+  ];
+
+  // Days of the week
+  const days = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+  ];
 
   return (
     <div className="min-h-screen">
@@ -494,7 +653,7 @@ const MeditationPortal = () => {
                                   <td className="py-3 text-sm font-medium sanskrit-text">{session.practice}</td>
                                   <td className="py-3 text-sm">{session.time}</td>
                                   <td className="py-3 text-sm">{session.duration} min</td>
-                                  <td className="py-3 text-right">
+                                  <td className="py-3 text-right flex gap-2 justify-end">
                                     <Button 
                                       size="sm"
                                       variant="ghost"
@@ -503,6 +662,22 @@ const MeditationPortal = () => {
                                     >
                                       <PlayCircle className="h-4 w-4 mr-1" />
                                       Start
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleEditScheduleItem(session)}
+                                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => handleDeleteScheduleItem(session.id)}
+                                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                    >
+                                      <Trash className="h-4 w-4" />
                                     </Button>
                                   </td>
                                 </tr>
@@ -513,9 +688,132 @@ const MeditationPortal = () => {
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <Button variant="outline" className="w-full btn btn-outline">
-                        Customize Schedule
-                      </Button>
+                      <Dialog open={isCustomizeScheduleOpen} onOpenChange={setIsCustomizeScheduleOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="w-full btn btn-primary">
+                            Customize Schedule
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>{editingScheduleItem ? "Edit Schedule" : "Customize Your Schedule"}</DialogTitle>
+                            <DialogDescription>
+                              {editingScheduleItem 
+                                ? "Update your meditation practice details" 
+                                : "Add new meditation practices to your weekly routine"}
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <div className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <label htmlFor="day" className="text-sm font-medium">Day</label>
+                                <Select
+                                  value={newScheduleItem.day}
+                                  onValueChange={(value) => setNewScheduleItem({...newScheduleItem, day: value})}
+                                >
+                                  <SelectTrigger id="day" className="divine-input">
+                                    <SelectValue placeholder="Select day" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {days.map(day => (
+                                      <SelectItem key={day} value={day}>
+                                        {day}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <label htmlFor="time" className="text-sm font-medium">Time</label>
+                                <Select
+                                  value={newScheduleItem.time}
+                                  onValueChange={(value) => setNewScheduleItem({...newScheduleItem, time: value})}
+                                >
+                                  <SelectTrigger id="time" className="divine-input">
+                                    <SelectValue placeholder="Select time" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {timeOptions.map(time => (
+                                      <SelectItem key={time} value={time}>
+                                        {time}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label htmlFor="practice" className="text-sm font-medium">Practice</label>
+                              <Select
+                                value={newScheduleItem.practice}
+                                onValueChange={(value) => setNewScheduleItem({...newScheduleItem, practice: value})}
+                              >
+                                <SelectTrigger id="practice" className="divine-input">
+                                  <SelectValue placeholder="Select practice" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {journeys.map(journey => (
+                                    <SelectItem key={journey.id} value={journey.title}>
+                                      {journey.title} ({journey.duration} min)
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label htmlFor="duration" className="text-sm font-medium">Duration (minutes)</label>
+                              <div className="pt-2">
+                                <Slider
+                                  id="duration"
+                                  value={[newScheduleItem.duration || 20]}
+                                  min={5}
+                                  max={60}
+                                  step={5}
+                                  onValueChange={(value) => setNewScheduleItem({...newScheduleItem, duration: value[0]})}
+                                />
+                                <div className="flex justify-between text-xs text-gray-500 mt-2">
+                                  <span>5 min</span>
+                                  <span>{newScheduleItem.duration || 20} min</span>
+                                  <span>60 min</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <DialogFooter className="flex flex-col sm:flex-row sm:justify-between">
+                            {editingScheduleItem ? (
+                              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                                <Button 
+                                  variant="default" 
+                                  onClick={handleUpdateScheduleItem}
+                                  className="w-full btn btn-primary"
+                                >
+                                  Update Schedule
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={handleCancelEdit}
+                                  className="w-full btn btn-outline"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button 
+                                variant="default" 
+                                onClick={handleAddScheduleItem}
+                                className="w-full btn btn-primary"
+                              >
+                                Add to Schedule
+                              </Button>
+                            )}
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </CardFooter>
                   </Card>
                 </div>
