@@ -169,13 +169,13 @@ const Navbar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem as={Link} to="/profile">
+                  <DropdownMenuItem onClick={() => window.location.href = '/profile'}>
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem as={Link} to="/bookmarks">
+                  <DropdownMenuItem onClick={() => window.location.href = '/bookmarks'}>
                     Bookmarks
                   </DropdownMenuItem>
-                  <DropdownMenuItem as={Link} to="/settings">
+                  <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
                     Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
