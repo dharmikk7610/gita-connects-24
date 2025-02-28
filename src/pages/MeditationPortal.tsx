@@ -1,6 +1,17 @@
 
 import { useState } from "react";
-import { ArrowRight, ChevronRight, Calendar, Clock, Search, SlidersHorizontal, PlayCircle } from "lucide-react";
+import { 
+  ArrowRight, 
+  ChevronRight, 
+  Calendar, 
+  Clock, 
+  Search, 
+  SlidersHorizontal, 
+  PlayCircle, 
+  Star,
+  Heart,
+  Sparkle 
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
@@ -346,10 +357,8 @@ const MeditationPortal = () => {
                         </NavigationMenuContent>
                       </NavigationMenuItem>
                       <NavigationMenuItem>
-                        <Link to="/timeline" legacyBehavior passHref>
-                          <NavigationMenuLink className={navigationMenuTriggerStyle() + " bg-white/80 dark:bg-deepBlue-700/50"}>
-                            Sacred Timeline
-                          </NavigationMenuLink>
+                        <Link to="/timeline" className={navigationMenuTriggerStyle() + " bg-white/80 dark:bg-deepBlue-700/50"}>
+                          Sacred Timeline
                         </Link>
                       </NavigationMenuItem>
                     </NavigationMenuList>
@@ -496,7 +505,7 @@ const MeditationPortal = () => {
                   <div id="featured" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
-                        <Sparkles className="h-5 w-5 mr-2 text-gold-500" />
+                        <Sparkle className="h-5 w-5 mr-2 text-gold-500" />
                         Featured Journeys
                       </h2>
                       <Button variant="link" className="text-gold-500">
@@ -593,7 +602,7 @@ const MeditationPortal = () => {
                   <div id="energy" className="max-w-5xl mx-auto mb-12 animate-fade-in">
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="text-xl md:text-2xl font-bold text-deepBlue-600 dark:text-white flex items-center">
-                        <Sparkles className="h-5 w-5 mr-2 text-gold-500" />
+                        <Sparkle className="h-5 w-5 mr-2 text-gold-500" />
                         Energy Work
                       </h2>
                     </div>
@@ -685,7 +694,7 @@ const MeditationPortal = () => {
                 {/* Show a message if no journeys match the filters */}
                 {filteredJourneys.length === 0 && (
                   <div className="text-center py-12 bg-white/80 dark:bg-deepBlue-700/30 rounded-lg">
-                    <Sparkles className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
+                    <Sparkle className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-600 mb-4" />
                     <h3 className="text-lg font-medium text-deepBlue-600 dark:text-gold-300 mb-2">No meditation journeys found</h3>
                     <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
                       Try adjusting your search query or filters to find the perfect meditation practice for you.

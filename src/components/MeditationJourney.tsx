@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { 
   ArrowLeft, Play, Pause, Volume2, VolumeX, Heart, Moon, 
-  Sparkles, RefreshCw, Settings, Bookmark, Share2, Download
+  Sparkle, RefreshCw, Settings, Bookmark, Share2, Download
 } from "lucide-react";
 import {
   Drawer,
@@ -322,7 +322,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
                           onClick={() => setBackgroundSound(sound as any)}
                           className="w-full justify-start"
                         >
-                          {sound === "nature" && <Sparkles className="h-4 w-4 mr-2" />}
+                          {sound === "nature" && <Sparkle className="h-4 w-4 mr-2" />}
                           {sound === "ambient" && <Moon className="h-4 w-4 mr-2" />}
                           {sound === "rain" && <Download className="h-4 w-4 mr-2" />}
                           {sound === "none" && <VolumeX className="h-4 w-4 mr-2" />}
@@ -444,7 +444,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
               ) : journey.id.includes('astral') ? (
                 <Moon className="h-20 w-20 text-white text-opacity-80" />
               ) : (
-                <Sparkles className="h-20 w-20 text-white text-opacity-80" />
+                <Sparkle className="h-20 w-20 text-white text-opacity-80" />
               )}
             </div>
           </div>
@@ -475,7 +475,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
             onClick={toggleMantra}
             className={`text-white hover:bg-white/10 ${showMantra ? 'bg-white/20' : ''}`}
           >
-            <Sparkles className="h-4 w-4 mr-1" />
+            <Sparkle className="h-4 w-4 mr-1" />
             Show Mantra
           </Button>
           
@@ -528,7 +528,7 @@ const MeditationJourney = ({ journey, onClose }: MeditationJourneyProps) => {
               onClick={() => handleMoodChange("curious")}
               className={`${mood === "curious" ? "bg-purple-500 hover:bg-purple-600" : "text-white hover:bg-white/10"}`}
             >
-              <Sparkles className="h-4 w-4 mr-1" />
+              <Sparkle className="h-4 w-4 mr-1" />
               Curiosity
             </Button>
             <Button 
